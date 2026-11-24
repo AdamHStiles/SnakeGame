@@ -1,62 +1,86 @@
 #include "raylib.h"
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 450
+
+typedef struct {
+  float x;
+  float y;
+} FloatVector2;
+
+class Ball {
+  int radius;
+
+  FloatVector2 *pos;
+  FloatVector2 *speed;
+  FloatVector2 *accel;
+
+  void detectCollision(void) {
+    if (pos->x - radius <= 0) {
+      pos->x = radius;
+      speed->x *= -1.0f;
+    }
+    else if (pos->x + radius >= SCREEN_WIDTH) {
+      pos->x = SCREEN_WIDTH - radius;
+      speed->x *= -1.0f;
+    }
+    
+    if (pos->y - radius <= 0) {
+      pos->y = radius;
+      speed->y *= -1.0f;
+    }
+    else if (pos->y + radius >= SCREEN_HEIGHT) {
+      pos->y = SCREEN_HEIGHT - radius;
+      speed->y *= -1.0f;
+    }
+  }
+
+public:
+
+  Ball(int radius) : 
+  radius(radius) { 
+    pos = new FloatVector2{(float)radius + 10, (float)radius + 10};
+    speed = new FloatVector2{0,0};
+    accel = new FloatVector2{1.0f,9.8f};
+
+  }
+
+  void move(float time) {
+    speed->x += time * accel->x * 100.0f;
+    speed->y += time * accel->y * 100.0f;
+
+    pos->x += (speed->x * time) + (0.5f * accel->x * time*time);
+    pos->y += (speed->y * time) + (0.5f * accel->y * time*time);
+
+    detectCollision(); 
+  }
+  
+  int getRadius() { return radius;  }
+  int getX() { return (int) pos->x; }
+  int getY() { return (int) pos->y; }
+
+  ~Ball() {
+    delete pos;
+    delete speed;
+    delete accel;
+  }
+
+};
+
 int main(void) {
-  const int screenWidth = 800;
-  const int screenHeight = 450;
+  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "window name");
 
-  InitWindow(screenWidth, screenHeight, "window name");
-
-  int currentFPS = 60;
-
-  Vector2 deltaCircle = {0, (float)screenHeight / 3.0f};
-  Vector2 frameCircle = {0, (float)screenHeight * (2.0f / 3.0f)};
-
-  const float speed = 10.0f;
-  const float circleRadius = 32.0f;
-
-  SetTargetFPS(currentFPS);
-
+  Ball ball(15);
+  
+  SetTargetFPS(60);
   while (!WindowShouldClose()) {
-
-    float mouseWheel = GetMouseWheelMove();
-    if (mouseWheel != 0) {
-      currentFPS += (int)mouseWheel;
-      if (currentFPS < 0)
-        currentFPS = 0;
-      SetTargetFPS(currentFPS);
-    }
-
-    deltaCircle.x += GetFrameTime() * 6.0f * speed;
-    frameCircle.x += 0.1f * speed;
-
-    if (deltaCircle.x >= screenWidth)
-      deltaCircle.x = 0;
-    if (frameCircle.x >= screenWidth)
-      frameCircle.x = 0;
-
-    if (IsKeyPressed(KEY_R)) {
-      deltaCircle.x = 0;
-      frameCircle.x = 0;
-    }
 
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
-    DrawCircleV(deltaCircle, speed, RED);
-    DrawCircleV(frameCircle, speed, BLUE);
-
-    const char *fpsText = 0;
-    if (currentFPS <= 0)
-      fpsText = TextFormat("FPS: unlimited (%i)", GetFPS());
-    else
-      fpsText = TextFormat("FPS: %i (target %i)", GetFPS(), currentFPS);
-
-    DrawText(fpsText, 10, 10, 20, DARKGRAY);
-    DrawText(TextFormat("Frame time: %2.0f ms", GetFrameTime() * 1000.0f), 10,
-             30, 20, DARKGRAY);
-
-    DrawText("FUNC: x += GetFrameTime()*speed", 10, 90, 20, RED);
-    DrawText("FUNC: x += speed", 10, 240, 20, RED);
+    
+    ball.move(GetFrameTime());
+    DrawCircle(ball.getX(), ball.getY(), ball.getRadius(), RED);
 
     EndDrawing();
   }
