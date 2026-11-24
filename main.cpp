@@ -1,87 +1,82 @@
 #include "raylib.h"
+#include <array>
+#include <stdexcept>
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 450
+#define NUM_CELLS 20
+#define CELL_SIZE 30
 
-typedef struct {
-  float x;
-  float y;
-} FloatVector2;
-
-class Ball {
-  int radius;
-
-  FloatVector2 *pos;
-  FloatVector2 *speed;
-  FloatVector2 *accel;
-
-  void detectCollision(void) {
-    if (pos->x - radius <= 0) {
-      pos->x = radius;
-      speed->x *= -1.0f;
-    }
-    else if (pos->x + radius >= SCREEN_WIDTH) {
-      pos->x = SCREEN_WIDTH - radius;
-      speed->x *= -1.0f;
-    }
-    
-    if (pos->y - radius <= 0) {
-      pos->y = radius;
-      speed->y *= -1.0f;
-    }
-    else if (pos->y + radius >= SCREEN_HEIGHT) {
-      pos->y = SCREEN_HEIGHT - radius;
-      speed->y *= -1.0f;
-    }
-  }
-
-public:
-
-  Ball(int radius) : 
-  radius(radius) { 
-    pos = new FloatVector2{(float)radius + 10, (float)radius + 10};
-    speed = new FloatVector2{0,0};
-    accel = new FloatVector2{1.0f,9.8f};
-
-  }
-
-  void move(float time) {
-    speed->x += time * accel->x * 100.0f;
-    speed->y += time * accel->y * 100.0f;
-
-    pos->x += (speed->x * time) + (0.5f * accel->x * time*time);
-    pos->y += (speed->y * time) + (0.5f * accel->y * time*time);
-
-    detectCollision(); 
-  }
-  
-  int getRadius() { return radius;  }
-  int getX() { return (int) pos->x; }
-  int getY() { return (int) pos->y; }
-
-  ~Ball() {
-    delete pos;
-    delete speed;
-    delete accel;
-  }
-
+enum class direction{
+  UP = 0,
+  LEFT,
+  DOWN,
+  RIGHT
 };
 
-int main(void) {
-  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "window name");
+ void move_snake(std::array<Vector2, NUM_CELLS*NUM_CELLS> &snake, std::size_t snake_len, direction dir) { 
+  for (std::size_t section{snake_len}; section > 1; --section) {
+    snake[section].x = snake[section - 1].x; 
+    snake[section].y = snake[section - 1].y; 
+  }
 
-  Ball ball(15);
+  switch(dir) {
+    case direction::UP:
+      snake[0].y -= CELL_SIZE;
+      break;
+    case direction::LEFT:
+      snake[0].x -= CELL_SIZE;
+      break;
+    case direction::DOWN:
+      snake[0].y += CELL_SIZE;
+      break;
+    case direction::RIGHT:
+      snake[0].x += CELL_SIZE;
+      break;
+    default:
+        throw std::runtime_error("Invlaid Direction!");
+  }
+
+} 
+
+
+int main(void) {
+  const int screen_size = 600;
+ 
+  std::array<Vector2, NUM_CELLS*NUM_CELLS> snake;
+  int snake_len = 7; 
+  direction snake_dir = direction::RIGHT;
+
+  snake[0].x = (NUM_CELLS / 2) * CELL_SIZE;
+  snake[0].y = (NUM_CELLS / 2) * CELL_SIZE;
+  for (std::size_t section{1}; section < snake_len; ++section) {
+    snake[section].x = snake[section - 1].x - CELL_SIZE; 
+    snake[section].y = snake[0].y; 
+  }
+
+
+  InitWindow(screen_size, screen_size, "SnakeGame");
   
-  SetTargetFPS(60);
+  SetTargetFPS(5);
+
   while (!WindowShouldClose()) {
 
+    move_snake(snake, snake_len, snake_dir);
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
-    
-    ball.move(GetFrameTime());
-    DrawCircle(ball.getX(), ball.getY(), ball.getRadius(), RED);
 
+    // draw snake
+    for (std::size_t section {}; section < snake_len; ++section) {
+      DrawRectangle(snake[section].x, snake[section].y, CELL_SIZE, CELL_SIZE, BLUE);
+    }
+
+    // draw grid lines
+    for (std::size_t row {}; row < NUM_CELLS; ++row) {
+      DrawLine(0, row * CELL_SIZE, screen_size, row * CELL_SIZE, GRAY);
+    }
+    for (std::size_t col {}; col < NUM_CELLS; ++col) {
+      DrawLine(col * CELL_SIZE, 0, col * CELL_SIZE, screen_size, GRAY);
+    }
+    
     EndDrawing();
   }
 
