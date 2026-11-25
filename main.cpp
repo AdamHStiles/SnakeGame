@@ -1,8 +1,7 @@
 #include "raylib.h"
 #include <array>
 #include <stdexcept>
-#include <thread>
-#include <iostream>
+
 
 #define NUM_CELLS 20
 #define CELL_SIZE 30
@@ -55,7 +54,25 @@ direction change_dir(direction dir) {
   return dir;
 }
 
+bool is_apple_in_snake(const Vector2 *apple, const std::array<Vector2, NUM_CELLS*NUM_CELLS> &snake) {
+  for (const auto &segment : snake)
+    if (apple->x == segment.x && apple->y == segment.y)
+      return 1;
+
+  return 0;
+}
+
+void spawn_apple(Vector2 *apple, const std::array<Vector2, NUM_CELLS*NUM_CELLS> &snake) {
+  do{
+    *apple = {
+      (float) GetRandomValue(0, NUM_CELLS) * CELL_SIZE, 
+      (float) GetRandomValue(0, NUM_CELLS) * CELL_SIZE
+    };
+  } while (!is_apple_in_snake(apple, snake));
+}
+
 int main(void) {
+  SetRandomSeed(1);
   const int screen_size = 600;
  
   std::array<Vector2, NUM_CELLS*NUM_CELLS> snake;
@@ -68,18 +85,29 @@ int main(void) {
     snake[section].x = snake[section - 1].x - CELL_SIZE;
     snake[section].y = snake[0].y;
   }
+  
+  Vector2 apple;
+  spawn_apple(&apple, snake);
 
   InitWindow(screen_size, screen_size, "SnakeGame");
-  
   int targetFPS = 10;
   SetTargetFPS(targetFPS);
 
   while (!WindowShouldClose()) {
     snake_dir = change_dir(snake_dir);
     move_snake(snake, snake_len, snake_dir);
+
+    if (snake[0].x == apple.x && snake[0].y == apple.y) {
+      ++snake_len;
+      spawn_apple(&apple, snake);
+    }
+
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
+
+    // draw apple
+    DrawRectangle(apple.x, apple.y, CELL_SIZE, CELL_SIZE, RED);
 
     // draw snake
     for (std::size_t section {}; section < snake_len; ++section) {
