@@ -9,11 +9,17 @@
 #define HEADER_SIZE 40
 
 
-enum class direction{
+enum class direction {
   UP = 0,
   LEFT,
   DOWN,
   RIGHT
+};
+
+enum class game_state {
+  START = 0,
+  GAME,
+  DEAD
 };
 
 class Snake {
@@ -148,10 +154,27 @@ public:
 
 };
 
-void draw_header(int score) {
-  std::stringstream score_text("");
-  score_text << "Score: " << score;
-  DrawText(score_text.str().c_str(), 10, 5, 30, BLACK);
+void draw_header(int score, game_state state) {
+  switch (state) {
+    case game_state::START: {
+      const char *text = "Press any key to start";
+      DrawText(text, 10, 5, 30, BLACK);
+      break;
+    }
+    case game_state::GAME: {
+      std::stringstream score_text("");
+      score_text << "Score: " << score;
+      DrawText(score_text.str().c_str(), 10, 5, 30, BLACK);
+      break;
+    }
+    case game_state::DEAD: {
+      const char *text = "Game Over!";
+      DrawText(text, 10, 5, 30, RED);
+      break;
+    }
+    default:
+      throw std::runtime_error("invalid game state");
+  }
 }
 
 void draw_grid() {
@@ -173,10 +196,10 @@ void setup(Snake *snake, Apple *apple, int *score) {
 int main(void) {
   SetRandomSeed(1);
   const int screen_size = NUM_CELLS * CELL_SIZE;
- 
+  int score = 0; 
+  game_state state = game_state::START;
+
   Snake snake; 
-  int score{};
-  
   Apple apple;
 
   apple.spawn(&snake);
@@ -186,17 +209,50 @@ int main(void) {
   SetTargetFPS(targetFPS);
 
   while (!WindowShouldClose()) {
-    snake.change_dir();
-    snake.move();
+    switch (state) {
+      case game_state::START:
+        if (IsKeyPressed(KEY_SPACE))
+          state = game_state::GAME;
+        break;
 
-    if (snake.can_eat_apple(apple.getPos())) {
-      snake.grow();
-      apple.spawn(&snake);
-      ++score;
+      case game_state::GAME:
+        snake.change_dir();
+        snake.move();
+
+        if (snake.can_eat_apple(apple.getPos())) {
+          snake.grow();
+          apple.spawn(&snake);
+          ++score;
+        }
+
+        if (snake.is_collision()) {
+          setup(&snake, &apple, &score);
+          state = game_state::DEAD;
+        }
+        break;
+
+      case game_state::DEAD:
+        snake.change_dir();
+        snake.move();
+
+        if (snake.can_eat_apple(apple.getPos())) {
+          snake.grow();
+          apple.spawn(&snake);
+          ++score;
+        }
+
+        if (snake.is_collision()) {
+          setup(&snake, &apple, &score);
+          state = game_state::DEAD;
+        }
+
+        if (score >= 1)
+          state = game_state::GAME;
+        break;
+
+      default:
+        throw std::runtime_error("invalid game state!");
     }
-
-    if (snake.is_collision())
-      setup(&snake, &apple, &score);
 
     BeginDrawing();
 
@@ -207,7 +263,7 @@ int main(void) {
     snake.draw();
     
     // draw world 
-    draw_header(score);
+    draw_header(score, state);
     draw_grid();
     
     EndDrawing();
