@@ -19,7 +19,7 @@ enum class direction{
 class Snake {
   std::array<Vector2, NUM_CELLS*NUM_CELLS> snake;
   direction dir;
-  size_t snake_len;
+  std::size_t snake_len;
 
 public:
   
@@ -72,13 +72,28 @@ public:
       dir = direction::DOWN;
     else if (IsKeyPressed(KEY_A) && dir != direction::RIGHT)
       dir = direction::LEFT;
-  }
+ }
 
   bool can_eat_apple(const Vector2 &apple) {
     if (snake[0].x == apple.x && snake[0].y == apple.y)
       return true;
     else
       return false;
+  }
+
+  bool is_collision(void) {
+    Vector2 &head = snake[0];
+    for(std::size_t segment {1}; segment < snake_len; ++segment) {
+      if (head.x == snake[segment].x && head.y == snake[segment].y)
+        return true;
+    }
+
+    if (head.x < 0 || head.x > GetScreenWidth())
+      return true;
+    else if (head.y < HEADER_SIZE || head.y > GetScreenHeight())
+      return true;
+
+    return false;
   }
 
   void grow(void) {
@@ -105,8 +120,8 @@ public:
 class Apple {
   Vector2 pos;
   
-  bool is_pos_valid(Snake &snake) {
-    for(const auto &segment : snake.getBody()) {
+  bool is_pos_valid(Snake *snake) {
+    for(const auto &segment : snake->getBody()) {
       if (pos.x == segment.x && pos.y == segment.y)
         return false;
     }
@@ -114,11 +129,11 @@ class Apple {
   }
 
 public:
-  void spawn(Snake &snake) {
+  void spawn(Snake *snake) {
     do{
       pos = {
-        (float) GetRandomValue(0, NUM_CELLS) * CELL_SIZE, 
-        (float) GetRandomValue(0, NUM_CELLS) * CELL_SIZE + HEADER_SIZE
+        (float) GetRandomValue(0, NUM_CELLS-1) * CELL_SIZE, 
+        (float) GetRandomValue(0, NUM_CELLS-1) * CELL_SIZE + HEADER_SIZE
       };
     } while (!is_pos_valid(snake));
   }
@@ -149,6 +164,12 @@ void draw_grid() {
 
 }
 
+void setup(Snake *snake, Apple *apple, int *score) {
+  *score = 0;
+  *snake = Snake();
+  apple->spawn(snake);
+}
+
 int main(void) {
   SetRandomSeed(1);
   const int screen_size = NUM_CELLS * CELL_SIZE;
@@ -158,7 +179,7 @@ int main(void) {
   
   Apple apple;
 
-  apple.spawn(snake);
+  apple.spawn(&snake);
 
   InitWindow(screen_size, screen_size + HEADER_SIZE, "SnakeGame");
   int targetFPS = 10;
@@ -170,9 +191,12 @@ int main(void) {
 
     if (snake.can_eat_apple(apple.getPos())) {
       snake.grow();
-      apple.spawn(snake);
+      apple.spawn(&snake);
       ++score;
     }
+
+    if (snake.is_collision())
+      setup(&snake, &apple, &score);
 
     BeginDrawing();
 
