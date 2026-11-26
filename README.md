@@ -15,4 +15,4 @@ and you could start it with
 
 ## Demo 
 
-!(Demo GIF)[./.demo.gif]
+![Demo GIF](./.demo.gif)
