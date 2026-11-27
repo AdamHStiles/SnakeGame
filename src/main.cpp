@@ -39,14 +39,16 @@ void draw_header(int score, game_state state) {
 }
 
 void draw_grid() {
+  Color bg_color1 = GetColor(0x6fc93fff);
+  Color bg_color2 = Fade(bg_color1, 0.8f);
   for(std::size_t row {}; row < NUM_CELLS; ++row) {
     for(std::size_t col{}; col < NUM_CELLS; ++col) {
       int startX = row*CELL_SIZE;
       int startY = col*CELL_SIZE + HEADER_SIZE;
       if ((row + col) % 2 == 0)
-        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, Fade(LIME, 0.85f)); 
+        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, bg_color1); 
       else
-        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, Fade(LIME, 0.75f)); 
+        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, bg_color2); 
     }
   }
 }
