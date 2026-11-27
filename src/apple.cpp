@@ -21,7 +21,8 @@ void Apple::spawn(Snake *snake) {
 }
 
 void Apple::draw(void) const {
-  DrawRectangle(pos.x, pos.y, CELL_SIZE, CELL_SIZE, RED);
+  int radius = CELL_SIZE / 2;
+  DrawCircle(pos.x + radius, pos.y + radius, radius, RED);
 }
 
 Vector2 &Apple::getPos() {

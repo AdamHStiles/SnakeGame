@@ -67,16 +67,17 @@ bool Snake::can_eat_apple(const Vector2 &apple) {
 
 bool Snake::is_collision(void) {
   Vector2 &head = snake[0];
+  int right_edge = (NUM_CELLS-1) * CELL_SIZE;
+  int bottom_edge = (NUM_CELLS-1) * CELL_SIZE + HEADER_SIZE;
+  if (head.x < 0 || head.x > right_edge)
+    return true;
+  else if (head.y < HEADER_SIZE || head.y > bottom_edge)
+    return true;
+
   for(std::size_t segment {1}; segment < snake_len; ++segment) {
     if (head.x == snake[segment].x && head.y == snake[segment].y)
       return true;
   }
-
-  if (head.x < 0 || head.x > GetScreenWidth())
-    return true;
-  else if (head.y < HEADER_SIZE || head.y > GetScreenHeight())
-    return true;
-
   return false;
 }
 
@@ -86,11 +87,11 @@ void Snake::grow(void) {
 }
 
 void Snake::draw(void) {
-  DrawRectangle(snake[0].x, snake[0].y, CELL_SIZE, CELL_SIZE, DARKBLUE);
-
-  for (std::size_t section {1}; section < snake_len; ++section) {
+  for (std::size_t section {0}; section < snake_len; ++section) {
     DrawRectangle(snake[section].x, snake[section].y, CELL_SIZE, CELL_SIZE, BLUE);
   }
+  Rectangle head_rec = {snake[0].x, snake[0].y, CELL_SIZE, CELL_SIZE};
+  DrawRectangleLinesEx(head_rec, 6, Fade(DARKBLUE, 0.5f));
 }
 
 std::array<Vector2, NUM_CELLS*NUM_CELLS> &Snake::getBody() {

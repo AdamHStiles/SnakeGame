@@ -39,11 +39,15 @@ void draw_header(int score, game_state state) {
 }
 
 void draw_grid() {
-  for (std::size_t row {}; row < NUM_CELLS; ++row) {
-    DrawLine(0, row * CELL_SIZE + HEADER_SIZE, GetScreenWidth(), row * CELL_SIZE + HEADER_SIZE, GRAY);
-  }
-  for (std::size_t col {}; col < NUM_CELLS; ++col) {
-    DrawLine(col * CELL_SIZE, HEADER_SIZE, col * CELL_SIZE, GetScreenHeight(), GRAY);
+  for(std::size_t row {}; row < NUM_CELLS; ++row) {
+    for(std::size_t col{}; col < NUM_CELLS; ++col) {
+      int startX = row*CELL_SIZE;
+      int startY = col*CELL_SIZE + HEADER_SIZE;
+      if ((row + col) % 2 == 0)
+        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, Fade(LIME, 0.85f)); 
+      else
+        DrawRectangle(startX, startY, CELL_SIZE, CELL_SIZE, Fade(LIME, 0.75f)); 
+    }
   }
 }
 
@@ -84,8 +88,14 @@ int main(void) {
         break;
 
       case game_state::GAME:
+
         snake.change_dir();
         snake.move();
+
+        if (snake.is_collision()) {
+          setup(&snake, &apple, &score);
+          state = game_state::DEAD;
+        }
 
         if (snake.can_eat_apple(apple.getPos())) {
           snake.grow();
@@ -93,28 +103,10 @@ int main(void) {
           ++score;
         }
 
-        if (snake.is_collision()) {
-          setup(&snake, &apple, &score);
-          state = game_state::DEAD;
-        }
         break;
 
       case game_state::DEAD:
-        snake.change_dir();
-        snake.move();
-
-        if (snake.can_eat_apple(apple.getPos())) {
-          snake.grow();
-          apple.spawn(&snake);
-          ++score;
-        }
-
-        if (snake.is_collision()) {
-          setup(&snake, &apple, &score);
-          state = game_state::DEAD;
-        }
-
-        if (score >= 1)
+        if (any_keypressed())
           state = game_state::GAME;
         break;
 
@@ -126,13 +118,11 @@ int main(void) {
 
     ClearBackground(RAYWHITE);
 
-    apple.draw();
-
-    snake.draw();
-    
-    // draw world 
     draw_header(score, state);
     draw_grid();
+
+    apple.draw();
+    snake.draw();
     
     EndDrawing();
   } 
