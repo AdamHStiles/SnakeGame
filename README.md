@@ -1,18 +1,26 @@
-## SnakeGame
+# SnakeGame
 
-This is jsut a small project I did in raylib for fun. It's only on 
-github so that I can work on it from another computer
+This is a small project I did in raylib for fun. I wanted to practice programming in C++ and this was a pretty good way to test my skills. 
+It uses the vanilla raylib library in C but I used Object Oriented C++ features to organize the logic of my code. The visuals are very simple
+because I wanted to focus on the game logic by itself without relying on library specific features.
 
-## Build
+All code in this project was written by me with no AI coding utility.
 
-make sure raylib is installed and then run 
+# Build
+This was built with only Linux in mind, but can easily be ported to a different OS by changing the compiler flags
 
-```make```
+First, make sure that raylib is installed and then run 
 
-and you could start it with 
+```
+git clone https://github.com/AdamHStiles/SnakeGame.git
+cd SnakeGame
+make
+```
+
+Then start the game with 
 
 ```./snake.o```
 
-## Demo 
+# Demo 
 
-![Demo GIF](./.demo.gif)
+<img src=".demo.gif" width="606" alt="A GIF of a demo of the game">
