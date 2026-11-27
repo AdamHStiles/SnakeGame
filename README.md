@@ -23,4 +23,5 @@ Then start the game with
 
 # Demo 
 
-<img src=".demo.gif" width="606" alt="A GIF of a demo of the game">
+<img width="600" height="663" alt="demo" src="https://github.com/user-attachments/assets/a166b378-6922-41bc-9c80-ce1cdb413109" />
+
